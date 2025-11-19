@@ -8,10 +8,6 @@ import java.util.Map;
  * This class generates a statement for a given invoice of performances.
  */
 public class StatementPrinter {
-    static final int TRADAGY = 40000;
-    static final int THOU = 1000;
-    static final int THR = 30;
-    static final int HUN = 100;
     private Invoice invoice;
     private Map<String, Play> plays;
 
@@ -54,11 +50,7 @@ public class StatementPrinter {
         for (Performance p : invoice.getPerformances()) {
 
             // add volume credits
-            volumeCredits += Math.max(p.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD, 0);
-            // add extra credit for every five comedy attendees
-            if ("comedy".equals(getPlay(p).getType())) {
-                volumeCredits += p.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
-            }
+            volumeCredits += getVolumeCredits(p);
 
             // print line for this order
             result.append(String.format("  %s: %s (%s seats)%n", getPlay(p).getName(),
@@ -68,6 +60,16 @@ public class StatementPrinter {
         result.append(String.format("Amount owed is %s%n", frmt.format(totalAmount / Constants.PERCENT_FACTOR)));
         result.append(String.format("You earned %s credits%n", volumeCredits));
         return result.toString();
+    }
+
+    private int getVolumeCredits(Performance perf) {
+        int out = 0;
+        out += Math.max(perf.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD, 0);
+        // add extra credit for every five comedy attendees
+        if ("comedy".equals(getPlay(perf).getType())) {
+            out += perf.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
+        }
+        return out;
     }
 
     private Play getPlay(Performance perf) {
